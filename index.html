@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Build-extra by YOTOV-LIMITED</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Build-extra</h1>
+      <h2 class="project-tagline">Additional files and scripts to help build Git for Windows on MSYS2.</h2>
+      <a href="https://github.com/YOTOV-LIMITED/build-extra" class="btn">View on GitHub</a>
+      <a href="https://github.com/YOTOV-LIMITED/build-extra/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/YOTOV-LIMITED/build-extra/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="build-environment-for-git-for-windows" class="anchor" href="#build-environment-for-git-for-windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build environment for Git for Windows</h1>
+
+<p>This is Git for Windows SDK, the build environment for <a href="http://git-for-windows.github.io/">Git for Windows</a>.</p>
+
+<p>The easiest way to install Git for Windows SDK is via the <a href="https://github.com/git-for-windows/build-extra/releases/latest">Git SDK installer</a>. This installer will clone our <a href="http://github.com/git-for-windows/">repositories</a>, including all the necessary components to build Git for Windows, and perform an initial build. It will also install a shortcut to the Git SDK Bash on the desktop.</p>
+
+<p>To check out the <code>build-extra</code> project in the Git SDK, issue the following commands in the Git SDK Bash:</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> /usr/src/build-extra
+git fetch
+git checkout master</pre></div>
+
+<h1>
+<a id="components-of-the-git-for-windows-sdk" class="anchor" href="#components-of-the-git-for-windows-sdk" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Components of the Git for Windows SDK</h1>
+
+<p>The build environment brings all the necessary parts required to build a Git for Windows installer, or a portable Git for Windows ("portable" == "USB drive edition", i.e. you can run it without installing, from wherever it was unpacked).</p>
+
+<h2>
+<a id="git-for-windows" class="anchor" href="#git-for-windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Git for Windows</h2>
+
+<p>The most important part of Git for Windows is <a href="https://git-scm.com/">Git</a>, obviously. The Git for Windows project maintains <a href="https://github.com/git-for-windows/git">a friendly fork</a> of the "upstream" <a href="https://github.com/git/git">Git project</a>. The idea is that the Git for Windows repository serves as a test bed to develop patches and patch series that are specific to the Windows port, and once the patches stabilized, they are <a href="https://github.com/git-for-windows/git/tree/master/Documentation/SubmittingPatches">submitted upstream</a>.</p>
+
+<h2>
+<a id="msys2" class="anchor" href="#msys2" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MSys2</h2>
+
+<p>Git is not a monolithic executable, but consists of a couple of executables written in C, a couple of Bash scripts, a couple of Perl scripts, and a couple of Tcl/Tk scripts. Some parts (not supported by Git for Windows yet) are written in other script languages, still.</p>
+
+<p>To support those scripts, Git for Windows uses <a href="https://msys2.github.io/">MSys2</a>, a project providing a minimal POSIX emulation layer (based on <a href="https://cygwin.com">Cygwin</a>), a package management system (named "Pacman", borrowed from Arch Linux) and a number of packages that are kept up-to-date by an active team of maintainers, including Bash, Perl, Subversion, etc.</p>
+
+<h3>
+<a id="the-difference-between-msys2-and-mingw" class="anchor" href="#the-difference-between-msys2-and-mingw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The difference between MSys2 and MinGW</h3>
+
+<p>MSys2 refers to the libraries and programs that use the POSIX emulation layer ("msys2 runtime", derived from Cygwin's <code>cygwin1.dll</code>). It is very easy to port libraries and programs from Unix/Linux because most of the POSIX semantics is emulated reasonably well, for example <a href="http://pubs.opengroup.org/onlinepubs/000095399/functions/fork.html">the <code>fork()</code> function</a>. Bash and Perl are examples of MSys2 programs.</p>
+
+<p>MinGW refers to libraries and programs that are compiled using GNU tools but do not require any POSIX semantics, instead relying on the standard Win32 API and the C runtime library. MinGW stands for "Minimal GNU for Windows". Examples: cURL (a library to talk to remote servers via HTTP(S), (S)FTP, etc), emacs, Inkscape, etc</p>
+
+<p>The POSIX emulation layer of MSys2 binaries is convenient, but comes at a cost: Typically, MSys2 programs are noticably slower than their MinGW counterparts (if there are such counterparts). As a consequence, the Git for Windows project tries to provide as many components as possible as MinGW binaries.</p>
+
+<h3>
+<a id="mingw-packages" class="anchor" href="#mingw-packages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MinGW packages</h3>
+
+<p>The MinGW packages are built from the <code>MINGW-packages</code> repository which can be initialized in the Git SDK Bash via</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> /usr/src/MINGW-packages
+git fetch
+git checkout master</pre></div>
+
+<p>The packages inside the <code>/usr/src/MINGW-packages/</code> directory can then be built by executing <code>makepkg-mingw -s</code> in the appropriate subdirectory.</p>
+
+<p>MinGW packages can be built for both <code>i686</code> and <code>x86_64</code> architectures at the same time by making sure that both toolchains are installed (<code>pacman -Sy mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain</code>) before running <code>makepkg-mingw</code>.</p>
+
+<h3>
+<a id="msys2-packages" class="anchor" href="#msys2-packages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MSys2 packages</h3>
+
+<p>The MSys2 packages are built from the <code>MSYS2-packages</code> repository which can be initialized in the Git SDK Bash via</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> /usr/src/MSYS2-packages
+git fetch
+git checkout master</pre></div>
+
+<p>To build the packages inside the <code>/usr/src/MSYS2-packages/</code> directory, the user has to launch a special shell by double-clicking the <code>msys2_shell.bat</code> script in the top-level directory of the Git SDK, switch the working directory to the appropriate subdirectory of <code>/usr/src/MSYS2-packages/</code> and then execute <code>makepkg -s</code>. Before the first MSys2 package is built, the prerequisite development packages have to be installed by executing <code>pacman -Sy base-devel binutils</code>.</p>
+
+<h2>
+<a id="installer-generators" class="anchor" href="#installer-generators" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installer generators</h2>
+
+<p>The Git for Windows project aims to provide three different types of installers:</p>
+
+<ul>
+<li>
+<em>Git for Windows</em> for end users. The subdirectory <code>installer/</code> contains the files to generate this installer.</li>
+<li>
+<em>Portable Git for Windows</em> for end users ("USB drive edition"). This installer is actually a self-extracting <code>.7z</code> archive, and can be generated using the files in <code>portable/</code>.</li>
+<li>The <em>Git for Windows SDK</em> for Git for Windows contributors. This is a complete development environment to build Git for Windows, including Git, Bash, cURL, etc (including these three installers, of course). The files to generate this installer live in <code>sdk-installer/</code>.</li>
+</ul>
+
+<h2>
+<a id="support-scriptsfiles" class="anchor" href="#support-scriptsfiles" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support scripts/files</h2>
+
+<p>The <code>build-extra</code> repository is also the home of other resources necessary to develop and maintain Git for Windows. For example, it contains the <a href="https://github.com/git-for-windows/build-extra/blob/master/shears.sh">Git garden shears</a> that help with updating Git for Windows' source code whenever new upstream Git versions are released ("merging rebase").</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/YOTOV-LIMITED/build-extra">Build-extra</a> is maintained by <a href="https://github.com/YOTOV-LIMITED">YOTOV-LIMITED</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("72492019");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
